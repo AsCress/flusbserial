@@ -1,4 +1,4 @@
-# fl_usb_serial
+# flusbserial
 
 A new Flutter plugin project.
 

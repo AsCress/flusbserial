@@ -1,4 +1,4 @@
-name: fl_usb_serial
+name: flusbserial
 description: "A new Flutter plugin project."
 version: 0.0.1
 homepage:
@@ -38,10 +38,13 @@ flutter:
     platforms:
       linux:
         pluginClass: FlUsbSerialPlugin
+        dartPluginClass: FlUsbLinux
       macos:
         pluginClass: FlUsbSerialPlugin
+        dartPluginClass: FlUsbMac
       windows:
         pluginClass: FlUsbSerialPluginCApi
+        dartPluginClass: FlUsbWindows
 
   # To add assets to your plugin package, add an assets section, like this:
   # assets:

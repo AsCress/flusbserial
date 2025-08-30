@@ -1,3 +1,4 @@
+import 'package:libusb/libusb64.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 abstract class FlUsbSerialPlatform extends PlatformInterface {
@@ -20,4 +21,6 @@ abstract class FlUsbSerialPlatform extends PlatformInterface {
     PlatformInterface.verifyToken(instance, _token);
     _instance = instance;
   }
+
+  Libusb get libusb;
 }
