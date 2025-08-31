@@ -3,7 +3,7 @@ import FlutterMacOS
 import XCTest
 
 
-@testable import fl_usb_serial
+@testable import flusbserial
 
 // This demonstrates a simple unit test of the Swift portion of this plugin's implementation.
 //

@@ -11,17 +11,6 @@ class UsbConfiguration {
     required this.interfaces,
   });
 
-  factory UsbConfiguration.fromMap(Map<dynamic, dynamic> map) {
-    var interfaces = (map['interfaces'] as List)
-        .map((e) => UsbInterface.fromMap(e))
-        .toList();
-    return UsbConfiguration(
-      id: map['id'],
-      index: map['index'],
-      interfaces: interfaces,
-    );
-  }
-
   Map<String, dynamic> toMap() {
     return {
       'id': id,

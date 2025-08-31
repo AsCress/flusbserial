@@ -1,6 +1,6 @@
-# fl_usb_serial_example
+# flusbserial_example
 
-Demonstrates how to use the fl_usb_serial plugin.
+Demonstrates how to use the flusbserial plugin.
 
 ## Getting Started
 

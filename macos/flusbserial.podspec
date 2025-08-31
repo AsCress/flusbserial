@@ -1,9 +1,9 @@
 #
 # To learn more about a Podspec see http://guides.cocoapods.org/syntax/podspec.html.
-# Run `pod lib lint fl_usb_serial.podspec` to validate before publishing.
+# Run `pod lib lint flusbserial.podspec` to validate before publishing.
 #
 Pod::Spec.new do |s|
-  s.name             = 'fl_usb_serial'
+  s.name             = 'flusbserial'
   s.version          = '0.0.1'
   s.summary          = 'A new Flutter plugin project.'
   s.description      = <<-DESC
@@ -20,7 +20,7 @@ A new Flutter plugin project.
   # data, update the PrivacyInfo.xcprivacy file to describe your plugin's
   # privacy impact, and then uncomment this line. For more information,
   # see https://developer.apple.com/documentation/bundleresources/privacy_manifest_files
-  # s.resource_bundles = {'fl_usb_serial_privacy' => ['Resources/PrivacyInfo.xcprivacy']}
+  # s.resource_bundles = {'flusbserial_privacy' => ['Resources/PrivacyInfo.xcprivacy']}
 
   s.dependency 'FlutterMacOS'
 

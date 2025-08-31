@@ -1,25 +1,53 @@
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart' as ffi;
-import 'package:flusbserial/flusbserial_platform_interface.dart';
+import 'package:flusbserial/src/cp210x_serial_device.dart';
+import 'package:flusbserial/src/device_ids/cp210x_ids.dart';
 import 'package:flusbserial/src/usb_configuration.dart';
 import 'package:flusbserial/src/usb_device.dart';
 import 'package:flusbserial/src/usb_endpoint.dart';
 import 'package:flusbserial/src/usb_interface.dart';
 import 'package:flusbserial/src/usb_serial_interface.dart';
+import 'package:flusbserial/src/utils.dart';
 import 'package:flutter/foundation.dart';
 import 'package:libusb/libusb64.dart';
 
 abstract class UsbSerialDevice implements UsbSerialInterface {
   static final int usbTimeout = 0;
-  static final Libusb _libusb = FlUsbSerialPlatform.instance.libusb;
+  static final Libusb _libusb = libusb;
 
   @protected
-  static Pointer<libusb_device_handle>? deviceHandle;
+  late Pointer<libusb_device_handle> deviceHandle;
+  late final UsbDevice usbDevice;
+  late final int usbInterfaceId;
+  late UsbEndpoint inEndpoint;
+  late UsbEndpoint outEndpoint;
 
-  static late final UsbInterface usbInterface;
-  static late UsbEndpoint inEndpoint;
-  static late UsbEndpoint outEndpoint;
+  UsbSerialDevice(UsbDevice device, int interfaceId) {
+    usbDevice = device;
+    usbInterfaceId = interfaceId;
+    deviceHandle = nullptr;
+  }
+
+  static void init() {
+    if (_libusb.libusb_init(nullptr) != libusb_error.LIBUSB_SUCCESS) {
+      throw 'Libusb initialization error';
+    }
+  }
+
+  static UsbSerialDevice? createDevice(
+    UsbDevice device, {
+    int interfaceId = 0,
+  }) {
+    if (CP210xIds.isDeviceSupported(device.vendorId, device.productId)) {
+      return Cp210XSerialDevice(device, interfaceId);
+    }
+    return null;
+  }
+
+  static bool isSupported(UsbDevice device) {
+    return CP210xIds.isDeviceSupported(device.vendorId, device.productId);
+  }
 
   static Future<List<UsbDevice>> listDevices() async {
     var ptrDeviceList = ffi.calloc<Pointer<Pointer<libusb_device>>>();
@@ -62,12 +90,12 @@ abstract class UsbSerialDevice implements UsbSerialInterface {
     ffi.calloc.free(ptrDescriptor);
   }
 
-  static Future<UsbConfiguration> getConfiguration(int index) async {
-    assert(deviceHandle != null, 'Device not open');
+  Future<UsbConfiguration> getConfiguration(int index) async {
+    assert(deviceHandle != nullptr, 'Device not open');
 
     var ptrConfigDescription = ffi.calloc<Pointer<libusb_config_descriptor>>();
     try {
-      var device = _libusb.libusb_get_device(deviceHandle!);
+      var device = _libusb.libusb_get_device(deviceHandle);
       var getConfigDescriptor = _libusb.libusb_get_config_descriptor(
         device,
         index,
@@ -120,23 +148,20 @@ abstract class UsbSerialDevice implements UsbSerialInterface {
   ) sync* {
     for (var i = 0; i < endpointCount; i++) {
       var endpointDesc = ptrEndpointDescriptor[i];
-      yield UsbEndpoint(
-        endpointNumber: endpointDesc.bEndpointAddress & UsbEndpoint.maskNumber,
-        direction: endpointDesc.bEndpointAddress & UsbEndpoint.maskDirection,
-      );
+      yield UsbEndpoint.fromDescriptor(endpointDesc);
     }
   }
 
   @override
   Future<Uint8List> read(int bytesToRead, int timeout) async {
-    assert(deviceHandle != null, 'Device not open');
+    assert(deviceHandle != nullptr, 'Device not open');
 
     var ptrActualLength = ffi.calloc<Int32>();
     var ptrData = ffi.calloc<Uint8>(bytesToRead);
     try {
       var result = _libusb.libusb_bulk_transfer(
-        deviceHandle!,
-        inEndpoint.endpointNumber,
+        deviceHandle,
+        inEndpoint.endpointAddress,
         ptrData,
         bytesToRead,
         ptrActualLength,
@@ -145,7 +170,7 @@ abstract class UsbSerialDevice implements UsbSerialInterface {
       if (result != libusb_error.LIBUSB_SUCCESS) {
         throw 'bulkTransferIn error';
       }
-      return Uint8List.fromList(ptrData.asTypedList(ptrActualLength.value));
+      return Uint8List.fromList(ptrData.asTypedList(bytesToRead));
     } finally {
       ffi.calloc.free(ptrActualLength);
       ffi.calloc.free(ptrData);
@@ -154,15 +179,15 @@ abstract class UsbSerialDevice implements UsbSerialInterface {
 
   @override
   Future<int> write(Uint8List data, int timeout) async {
-    assert(deviceHandle != null, 'Device not open');
+    assert(deviceHandle != nullptr, 'Device not open');
 
     var ptrData = ffi.calloc<Uint8>(data.length);
     var ptrActualLength = ffi.calloc<Int32>();
     ptrData.asTypedList(data.length).setAll(0, data);
     try {
       var result = _libusb.libusb_bulk_transfer(
-        deviceHandle!,
-        outEndpoint.endpointNumber,
+        deviceHandle,
+        outEndpoint.endpointAddress,
         ptrData,
         data.length,
         ptrActualLength,
@@ -178,11 +203,15 @@ abstract class UsbSerialDevice implements UsbSerialInterface {
     }
   }
 
+  static void exit() {
+    _libusb.libusb_exit(nullptr);
+  }
+
   @override
   Future<void> close();
 
   @override
-  Future<bool> open(UsbDevice usbDevice);
+  Future<bool> open();
 
   @override
   Future<void> setBaudRate(int baudRate);

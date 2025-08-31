@@ -1,10 +1,10 @@
 # Project-level configuration.
 cmake_minimum_required(VERSION 3.14)
-project(fl_usb_serial_example LANGUAGES CXX)
+project(flusbserial_example LANGUAGES CXX)
 
 # The name of the executable created for the application. Change this to change
 # the on-disk name of your application.
-set(BINARY_NAME "fl_usb_serial_example")
+set(BINARY_NAME "flusbserial_example")
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
 # versions of CMake.
@@ -53,7 +53,7 @@ add_subdirectory(${FLUTTER_MANAGED_DIR})
 add_subdirectory("runner")
 
 # Enable the test target.
-set(include_fl_usb_serial_tests TRUE)
+set(include_flusbserial_tests TRUE)
 
 # Generated plugin build rules, which manage building the plugins and adding
 # them to the application.

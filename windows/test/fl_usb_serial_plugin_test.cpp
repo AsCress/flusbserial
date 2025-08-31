@@ -10,7 +10,7 @@
 
 #include "fl_usb_serial_plugin.h"
 
-namespace fl_usb_serial {
+namespace flusbserial {
 namespace test {
 
 namespace {
@@ -40,4 +40,4 @@ TEST(FlUsbSerialPlugin, GetPlatformVersion) {
 }
 
 }  // namespace test
-}  // namespace fl_usb_serial
+}  // namespace flusbserial

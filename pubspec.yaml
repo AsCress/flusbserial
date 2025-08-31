@@ -37,14 +37,12 @@ flutter:
   plugin:
     platforms:
       linux:
-        pluginClass: FlUsbSerialPlugin
-        dartPluginClass: FlUsbLinux
+        dartPluginClass: FlUsbSerialLinux
       macos:
-        pluginClass: FlUsbSerialPlugin
-        dartPluginClass: FlUsbMac
+        dartPluginClass: FlUsbSerialMac
       windows:
-        pluginClass: FlUsbSerialPluginCApi
-        dartPluginClass: FlUsbWindows
+        pluginClass: FlUsbSerialPlugin
+        dartPluginClass: FlUsbSerialWindows
 
   # To add assets to your plugin package, add an assets section, like this:
   # assets:

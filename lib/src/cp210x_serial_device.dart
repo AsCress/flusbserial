@@ -2,18 +2,19 @@ import 'dart:ffi';
 import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart' as ffi;
-import 'package:flusbserial/flusbserial_platform_interface.dart';
 import 'package:flusbserial/src/usb_configuration.dart';
-import 'package:flusbserial/src/usb_device.dart';
 import 'package:flusbserial/src/usb_endpoint.dart';
+import 'package:flusbserial/src/usb_interface.dart';
 import 'package:flusbserial/src/usb_serial_device.dart';
 import 'package:flusbserial/src/usb_serial_interface.dart';
+import 'package:flusbserial/src/utils.dart';
 import 'package:flutter/widgets.dart';
 import 'package:libusb/libusb64.dart';
 
-class Cp2102SerialDevice extends UsbSerialDevice {
-  final Libusb _libusb = FlUsbSerialPlatform.instance.libusb;
+class Cp210XSerialDevice extends UsbSerialDevice {
+  final Libusb _libusb = libusb;
   UsbConfiguration? configuration;
+  static late final UsbInterface usbInterface;
 
   static const int purge = 0x12;
   static const int ifcEnable = 0x00;
@@ -44,7 +45,7 @@ class Cp2102SerialDevice extends UsbSerialDevice {
   static const int purgeAll = 0x000F;
 
   /// Default Serial Configuration
-  /// Baud rate: 9600
+  /// Baud rate: 1000000
   /// Data bits: 8
   /// Stop bits: 1
   /// Parity: None
@@ -58,20 +59,23 @@ class Cp2102SerialDevice extends UsbSerialDevice {
   static const int mhsAll = 0x0011;
   static const int xon = 0x0000;
   static const int xoff = 0x0000;
-  static const int defaultBaudRate = 9600;
+  static const int defaultBaudRate = 1000000;
+
+  Cp210XSerialDevice(super.device, super.interfaceId);
 
   @override
-  Future<void> close() {
-    throw UnimplementedError();
+  Future<void> close() async {
+    await setControlCommand(purge, purgeAll, null);
+    await setControlCommand(ifcEnable, uartDisable, null);
+    _libusb.libusb_release_interface(
+      deviceHandle,
+      configuration!.interfaces[usbInterfaceId].id,
+    );
   }
 
   @override
-  Future<bool> open(UsbDevice usbDevice) async {
-    if (_libusb.libusb_init(nullptr) != libusb_error.LIBUSB_SUCCESS) {
-      return false;
-    }
-
-    assert(UsbSerialDevice.deviceHandle == null, 'Last device not closed');
+  Future<bool> open() async {
+    assert(deviceHandle == nullptr, 'Last device not closed');
 
     var handle = _libusb.libusb_open_device_with_vid_pid(
       nullptr,
@@ -82,28 +86,28 @@ class Cp2102SerialDevice extends UsbSerialDevice {
       return false;
     }
 
-    UsbSerialDevice.deviceHandle = handle;
+    deviceHandle = handle;
 
-    configuration = await UsbSerialDevice.getConfiguration(0);
+    configuration = await getConfiguration(0);
 
     if (_libusb.libusb_claim_interface(
-          UsbSerialDevice.deviceHandle!,
-          configuration!.interfaces[0].id,
+          deviceHandle,
+          configuration!.interfaces[usbInterfaceId].id,
         ) !=
         libusb_error.LIBUSB_SUCCESS) {
       return false;
     }
 
-    UsbSerialDevice.usbInterface = configuration!.interfaces[0];
+    usbInterface = configuration!.interfaces[usbInterfaceId];
 
-    int numberOfEndpoints = UsbSerialDevice.usbInterface.endpoints.length;
+    int numberOfEndpoints = usbInterface.endpoints.length;
 
-    for (int i = 0; i < numberOfEndpoints - 1; i++) {
-      UsbEndpoint endpoint = UsbSerialDevice.usbInterface.endpoints[i];
+    for (int i = 0; i < numberOfEndpoints; i++) {
+      UsbEndpoint endpoint = usbInterface.endpoints[i];
       if (endpoint.direction == UsbEndpoint.directionIn) {
-        UsbSerialDevice.inEndpoint = endpoint;
+        inEndpoint = endpoint;
       } else {
-        UsbSerialDevice.outEndpoint = endpoint;
+        outEndpoint = endpoint;
       }
     }
 
@@ -122,31 +126,31 @@ class Cp2102SerialDevice extends UsbSerialDevice {
   }
 
   Future<int> setControlCommand(int request, int value, Uint8List? data) async {
-    assert(UsbSerialDevice.deviceHandle != null, 'Device not open');
+    assert(deviceHandle != nullptr, 'Device not open');
 
     Pointer<Uint8> ptrData = nullptr;
     int dataLength = 0;
 
     if (data != null && data.isNotEmpty) {
+      ptrData = toPtr(data);
       dataLength = data.length;
-      ptrData = ffi.calloc<Uint8>(dataLength);
-      for (var i = 0; i < dataLength; i++) {
-        ptrData[i] = data[i];
-      }
     }
 
     var result = _libusb.libusb_control_transfer(
-      UsbSerialDevice.deviceHandle!,
+      deviceHandle,
       reqTypeHostToDevice,
       request,
       value,
-      UsbSerialDevice.usbInterface.id,
+      usbInterfaceId,
       ptrData,
       dataLength,
       UsbSerialDevice.usbTimeout,
     );
-    if (result != libusb_error.LIBUSB_SUCCESS) {
-      throw 'controlTransfer error';
+    if (result < 0) {
+      throw 'controlTransfer error: ${_libusb.describeError(result)}';
+    }
+    if (ptrData != nullptr) {
+      ffi.calloc.free(ptrData);
     }
     return result;
   }
@@ -352,11 +356,11 @@ class Cp2102SerialDevice extends UsbSerialDevice {
   Future<int> getCTL() async {
     final Pointer<Uint8> ptrData = ffi.calloc<Uint8>(2);
     int result = _libusb.libusb_control_transfer(
-      UsbSerialDevice.deviceHandle!,
+      deviceHandle,
       reqTypeDeviceToHost,
       getLineCtl,
       0,
-      UsbSerialDevice.usbInterface.id,
+      usbInterfaceId,
       ptrData,
       2,
       UsbSerialDevice.usbTimeout,
@@ -364,5 +368,12 @@ class Cp2102SerialDevice extends UsbSerialDevice {
     debugPrint("Control Transfer Response: $result");
     Uint8List data = ptrData.asTypedList(2);
     return (data[1] << 8) | (data[0] & 0xFF);
+  }
+
+  Pointer<Uint8> toPtr(Uint8List data) {
+    final ptr = ffi.calloc<Uint8>(data.length);
+    final nativeList = ptr.asTypedList(data.length);
+    nativeList.setAll(0, data);
+    return ptr;
   }
 }

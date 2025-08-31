@@ -1,7 +1,5 @@
 import 'dart:typed_data';
 
-import 'package:flusbserial/src/usb_device.dart';
-
 interface class UsbSerialInterface {
   static final int dataBits5 = 5;
   static final int dataBits6 = 6;
@@ -23,7 +21,7 @@ interface class UsbSerialInterface {
   static final int flowControlDsrDtr = 2;
   static final int flowControlXonXoff = 3;
 
-  Future<bool> open(UsbDevice usbDevice) async {
+  Future<bool> open() async {
     throw UnimplementedError();
   }
 
