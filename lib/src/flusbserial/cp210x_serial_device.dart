@@ -2,12 +2,12 @@ import 'dart:ffi';
 import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart' as ffi;
-import 'package:flusbserial/src/usb_configuration.dart';
-import 'package:flusbserial/src/usb_endpoint.dart';
-import 'package:flusbserial/src/usb_interface.dart';
-import 'package:flusbserial/src/usb_serial_device.dart';
-import 'package:flusbserial/src/usb_serial_interface.dart';
-import 'package:flusbserial/src/utils.dart';
+import 'package:flusbserial/src/models/usb_configuration.dart';
+import 'package:flusbserial/src/models/usb_endpoint.dart';
+import 'package:flusbserial/src/models/usb_interface.dart';
+import 'package:flusbserial/src/flusbserial/usb_serial_device.dart';
+import 'package:flusbserial/src/flusbserial/usb_serial_interface.dart';
+import 'package:flusbserial/src/utils/utils.dart';
 import 'package:flutter/widgets.dart';
 import 'package:libusb/libusb64.dart';
 

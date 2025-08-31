@@ -1,4 +1,4 @@
-import 'package:flusbserial/src/usb_device.dart';
+import 'package:flusbserial/src/models/usb_device.dart';
 
 class UsbDeviceDescription {
   final UsbDevice device;

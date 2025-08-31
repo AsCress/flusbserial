@@ -1,4 +1,4 @@
-import 'package:flusbserial/src/usb_interface.dart';
+import 'package:flusbserial/src/models/usb_interface.dart';
 
 class UsbConfiguration {
   final int id;

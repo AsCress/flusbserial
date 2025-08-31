@@ -1,14 +1,14 @@
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart' as ffi;
-import 'package:flusbserial/src/cp210x_serial_device.dart';
+import 'package:flusbserial/src/flusbserial/cp210x_serial_device.dart';
 import 'package:flusbserial/src/device_ids/cp210x_ids.dart';
-import 'package:flusbserial/src/usb_configuration.dart';
-import 'package:flusbserial/src/usb_device.dart';
-import 'package:flusbserial/src/usb_endpoint.dart';
-import 'package:flusbserial/src/usb_interface.dart';
-import 'package:flusbserial/src/usb_serial_interface.dart';
-import 'package:flusbserial/src/utils.dart';
+import 'package:flusbserial/src/models/usb_configuration.dart';
+import 'package:flusbserial/src/models/usb_device.dart';
+import 'package:flusbserial/src/models/usb_endpoint.dart';
+import 'package:flusbserial/src/models/usb_interface.dart';
+import 'package:flusbserial/src/flusbserial/usb_serial_interface.dart';
+import 'package:flusbserial/src/utils/utils.dart';
 import 'package:flutter/foundation.dart';
 import 'package:libusb/libusb64.dart';
 
