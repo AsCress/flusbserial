@@ -1,6 +1,6 @@
 name: flusbserial
 description: "A cross-platform USB serial plugin for Flutter desktop apps (Windows, Linux, macOS)."
-version: 0.1.0
+version: 0.1.1
 homepage: https://github.com/AsCress/flusbserial
 issue_tracker: https://github.com/AsCress/flusbserial/issues
 topics:
@@ -22,10 +22,7 @@ dependencies:
     sdk: flutter
   plugin_platform_interface: ^2.1.8
   libusb: ^0.3.23+2
-  ffi: ^2.1.4
-
-dependency_overrides: 
-  ffi: ^2.1.4
+  ffi: ^1.0.0
 
 dev_dependencies:
   flutter_test:
