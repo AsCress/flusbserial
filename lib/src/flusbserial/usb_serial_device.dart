@@ -1,6 +1,7 @@
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart' as ffi;
+import 'package:flusbserial/src/flusbserial/cdc_serial_device.dart';
 import 'package:flusbserial/src/flusbserial/cp210x_serial_device.dart';
 import 'package:flusbserial/src/device_ids/cp210x_ids.dart';
 import 'package:flusbserial/src/models/usb_configuration.dart';
@@ -19,9 +20,9 @@ abstract class UsbSerialDevice implements UsbSerialInterface {
   @protected
   late Pointer<libusb_device_handle> deviceHandle;
   late final UsbDevice usbDevice;
-  late final int usbInterfaceId;
-  late UsbEndpoint inEndpoint;
-  late UsbEndpoint outEndpoint;
+  int usbInterfaceId = 0;
+  UsbEndpoint? inEndpoint;
+  UsbEndpoint? outEndpoint;
 
   UsbSerialDevice(UsbDevice device, int interfaceId) {
     usbDevice = device;
@@ -37,12 +38,16 @@ abstract class UsbSerialDevice implements UsbSerialInterface {
 
   static UsbSerialDevice? createDevice(
     UsbDevice device, {
-    int interfaceId = 0,
+    int interfaceId = -1,
   }) {
     if (CP210xIds.isDeviceSupported(device.vendorId, device.productId)) {
+      if (interfaceId == -1) {
+        interfaceId = 0;
+      }
       return Cp210XSerialDevice(device, interfaceId);
+    } else {
+      return CdcSerialDevice(device, interfaceId);
     }
-    return null;
   }
 
   static bool isSupported(UsbDevice device) {
@@ -133,6 +138,7 @@ abstract class UsbSerialDevice implements UsbSerialInterface {
         yield UsbInterface(
           id: intfDesc.bInterfaceNumber,
           alternateSetting: intfDesc.bAlternateSetting,
+          interfaceClass: intfDesc.bInterfaceClass,
           endpoints: _iterateEndpoint(
             intfDesc.endpoint,
             intfDesc.bNumEndpoints,
@@ -161,14 +167,14 @@ abstract class UsbSerialDevice implements UsbSerialInterface {
     try {
       var result = _libusb.libusb_bulk_transfer(
         deviceHandle,
-        inEndpoint.endpointAddress,
+        inEndpoint!.endpointAddress,
         ptrData,
         bytesToRead,
         ptrActualLength,
         timeout,
       );
       if (result != libusb_error.LIBUSB_SUCCESS) {
-        throw 'bulkTransferIn error';
+        throw 'bulkTransferIn error: ${_libusb.describeError(result)}';
       }
       return Uint8List.fromList(ptrData.asTypedList(bytesToRead));
     } finally {
@@ -187,14 +193,14 @@ abstract class UsbSerialDevice implements UsbSerialInterface {
     try {
       var result = _libusb.libusb_bulk_transfer(
         deviceHandle,
-        outEndpoint.endpointAddress,
+        outEndpoint!.endpointAddress,
         ptrData,
         data.length,
         ptrActualLength,
         timeout,
       );
       if (result != libusb_error.LIBUSB_SUCCESS) {
-        throw 'bulkTransferOut error';
+        throw 'bulkTransferOut error: ${_libusb.describeError(result)}';
       }
       return ptrActualLength.value;
     } finally {
@@ -230,4 +236,10 @@ abstract class UsbSerialDevice implements UsbSerialInterface {
 
   @override
   Future<void> setStopBits(int stopBits);
+
+  @override
+  Future<void> setDtr(bool state);
+
+  @override
+  Future<void> setRts(bool state);
 }

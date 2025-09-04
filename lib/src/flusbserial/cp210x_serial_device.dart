@@ -45,7 +45,7 @@ class Cp210XSerialDevice extends UsbSerialDevice {
   static const int purgeAll = 0x000F;
 
   /// Default Serial Configuration
-  /// Baud rate: 1000000
+  /// Baud rate: 9600
   /// Data bits: 8
   /// Stop bits: 1
   /// Parity: None
@@ -59,7 +59,7 @@ class Cp210XSerialDevice extends UsbSerialDevice {
   static const int mhsAll = 0x0011;
   static const int xon = 0x0000;
   static const int xoff = 0x0000;
-  static const int defaultBaudRate = 1000000;
+  static const int defaultBaudRate = 9600;
 
   Cp210XSerialDevice(super.device, super.interfaceId);
 
@@ -104,7 +104,9 @@ class Cp210XSerialDevice extends UsbSerialDevice {
 
     for (int i = 0; i < numberOfEndpoints; i++) {
       UsbEndpoint endpoint = usbInterface.endpoints[i];
-      if (endpoint.direction == UsbEndpoint.directionIn) {
+      if (endpoint.transferType ==
+              libusb_transfer_type.LIBUSB_TRANSFER_TYPE_BULK &&
+          endpoint.direction == UsbEndpoint.directionIn) {
         inEndpoint = endpoint;
       } else {
         outEndpoint = endpoint;
@@ -375,5 +377,15 @@ class Cp210XSerialDevice extends UsbSerialDevice {
     final nativeList = ptr.asTypedList(data.length);
     nativeList.setAll(0, data);
     return ptr;
+  }
+
+  @override
+  Future<void> setDtr(bool state) async {
+    await setControlCommand(setMhs, state ? mhsRtsOn : mhsRtsOff, null);
+  }
+
+  @override
+  Future<void> setRts(bool state) async {
+    await setControlCommand(setMhs, state ? mhsDtrOn : mhsDtrOff, null);
   }
 }

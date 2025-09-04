@@ -60,4 +60,12 @@ interface class UsbSerialInterface {
   Future<void> setBreak(bool state) async {
     throw UnimplementedError();
   }
+
+  Future<void> setDtr(bool state) async {
+    throw UnimplementedError();
+  }
+
+  Future<void> setRts(bool state) async {
+    throw UnimplementedError();
+  }
 }
