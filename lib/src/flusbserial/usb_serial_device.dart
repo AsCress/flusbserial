@@ -13,6 +13,11 @@ import 'package:flusbserial/src/utils/utils.dart';
 import 'package:flutter/foundation.dart';
 import 'package:libusb/libusb64.dart';
 
+/// Base class for USB serial devices.
+///
+/// This abstract class defines the common API for communicating with
+/// USB serial devices via libusb. Subclasses implement device-specific
+/// behaviors (e.g., [Cp210XSerialDevice] or [CdcSerialDevice]).
 abstract class UsbSerialDevice implements UsbSerialInterface {
   static final int usbTimeout = 0;
   static final Libusb _libusb = libusb;
@@ -36,6 +41,14 @@ abstract class UsbSerialDevice implements UsbSerialInterface {
     }
   }
 
+  /// Factory method that creates a device-specific implementation.
+  ///
+  /// Uses the device's vendor and product IDs to determine the correct
+  /// implementation. If a matching driver is found (e.g., CP210x), it
+  /// returns that device-specific implementation.
+  ///
+  /// If no specific driver matches, a [CdcSerialDevice] is returned
+  /// as the default fallback.
   static UsbSerialDevice? createDevice(
     UsbDevice device, {
     int interfaceId = -1,
@@ -50,10 +63,14 @@ abstract class UsbSerialDevice implements UsbSerialInterface {
     }
   }
 
+  /// Checks whether the given [UsbDevice] is supported.
   static bool isSupported(UsbDevice device) {
     return CP210xIds.isDeviceSupported(device.vendorId, device.productId);
   }
 
+  /// Lists all USB devices currently connected to the system.
+  ///
+  /// Returns an empty list if no devices are found or on error.
   static Future<List<UsbDevice>> listDevices() async {
     var ptrDeviceList = ffi.calloc<Pointer<Pointer<libusb_device>>>();
     try {
@@ -95,6 +112,9 @@ abstract class UsbSerialDevice implements UsbSerialInterface {
     ffi.calloc.free(ptrDescriptor);
   }
 
+  /// Retrieves the USB configuration at the given [index].
+  ///
+  /// Throws an exception if the configuration cannot be retrieved.
   Future<UsbConfiguration> getConfiguration(int index) async {
     assert(deviceHandle != nullptr, 'Device not open');
 
@@ -158,6 +178,12 @@ abstract class UsbSerialDevice implements UsbSerialInterface {
     }
   }
 
+  /// Reads data from the device using bulk transfer.
+  ///
+  /// [bytesToRead] specifies how many bytes to read.
+  /// [timeout] is in milliseconds.
+  ///
+  /// Throws if the transfer fails.
   @override
   Future<Uint8List> read(int bytesToRead, int timeout) async {
     assert(deviceHandle != nullptr, 'Device not open');
@@ -183,6 +209,12 @@ abstract class UsbSerialDevice implements UsbSerialInterface {
     }
   }
 
+  /// Writes data to the device using bulk transfer.
+  ///
+  /// [data] is the buffer to send.
+  /// [timeout] is in milliseconds.
+  ///
+  /// Returns the number of bytes actually written.
   @override
   Future<int> write(Uint8List data, int timeout) async {
     assert(deviceHandle != nullptr, 'Device not open');
@@ -213,33 +245,43 @@ abstract class UsbSerialDevice implements UsbSerialInterface {
     _libusb.libusb_exit(nullptr);
   }
 
+  /// Closes the device and releases resources.
   @override
   Future<void> close();
 
+  /// Opens the device and claims its interface(s).
   @override
   Future<bool> open();
 
+  /// Configures the baud rate for serial communication.
   @override
   Future<void> setBaudRate(int baudRate);
 
+  /// Sets or clears the break condition on the line.
   @override
   Future<void> setBreak(bool state);
 
+  /// Configures the number of data bits per character.
   @override
   Future<void> setDataBits(int dataBits);
 
+  /// Configures hardware/software flow control.
   @override
   Future<void> setFlowControl(int flowControl);
 
+  /// Configures the parity bit (none, even, odd, etc.).
   @override
   Future<void> setParity(int parity);
 
+  /// Configures the number of stop bits.
   @override
   Future<void> setStopBits(int stopBits);
 
+  /// Asserts or deasserts the DTR (Data Terminal Ready) line.
   @override
   Future<void> setDtr(bool state);
 
+  /// Asserts or deasserts the RTS (Request To Send) line.
   @override
   Future<void> setRts(bool state);
 }
