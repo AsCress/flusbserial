@@ -2,6 +2,7 @@
 
 * Adds support for CH34x-based devices.
 * Adds support for manual driver selection.
+* Fixes interface selection for CDC devices.
 
 ## 0.1.1
 

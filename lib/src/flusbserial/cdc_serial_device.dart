@@ -73,10 +73,12 @@ class CdcSerialDevice extends UsbSerialDevice {
 
     configuration = await getConfiguration(0);
 
-    for (var iface in configuration!.interfaces) {
-      if (iface.interfaceClass == libusb_class_code.LIBUSB_CLASS_DATA) {
-        usbInterfaceId = iface.id;
-        break;
+    if (usbInterfaceId == -1) {
+      for (var iface in configuration!.interfaces) {
+        if (iface.interfaceClass == libusb_class_code.LIBUSB_CLASS_DATA) {
+          usbInterfaceId = iface.id;
+          break;
+        }
       }
     }
 
