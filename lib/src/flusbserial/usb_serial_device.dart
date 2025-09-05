@@ -1,7 +1,9 @@
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart' as ffi;
+import 'package:flusbserial/src/device_ids/ch34x_ids.dart';
 import 'package:flusbserial/src/flusbserial/cdc_serial_device.dart';
+import 'package:flusbserial/src/flusbserial/ch34x_serial_device.dart';
 import 'package:flusbserial/src/flusbserial/cp210x_serial_device.dart';
 import 'package:flusbserial/src/device_ids/cp210x_ids.dart';
 import 'package:flusbserial/src/models/usb_configuration.dart';
@@ -19,6 +21,10 @@ import 'package:libusb/libusb64.dart';
 /// USB serial devices via libusb. Subclasses implement device-specific
 /// behaviors (e.g., [Cp210XSerialDevice] or [CdcSerialDevice]).
 abstract class UsbSerialDevice implements UsbSerialInterface {
+  static const String cdc = 'CDC';
+  static const String cp210x = 'CP210x';
+  static const String ch34x = 'CH34x';
+
   static final int usbTimeout = 0;
   static final Libusb _libusb = libusb;
 
@@ -41,23 +47,51 @@ abstract class UsbSerialDevice implements UsbSerialInterface {
     }
   }
 
-  /// Factory method that creates a device-specific implementation.
+  /// Factory method that creates a [UsbSerialDevice] implementation.
   ///
-  /// Uses the device's vendor and product IDs to determine the correct
-  /// implementation. If a matching driver is found (e.g., CP210x), it
-  /// returns that device-specific implementation.
+  /// Determines the appropriate driver based on the provided [UsbDevice]'s
+  /// vendor and product IDs, or by the optional [type] hint.
   ///
-  /// If no specific driver matches, a [CdcSerialDevice] is returned
-  /// as the default fallback.
+  /// - If [type] is specified and matches a supported driver (e.g., [UsbSerialDevice.cp210x],
+  ///   [UsbSerialDevice.ch34x], [UsbSerialDevice.cdc]), that driver is used
+  ///   if the device is compatible.
+  /// - If [type] is not specified or does not match, the method attempts to
+  ///   auto-detect support for known chipsets (currently CP210x and CH34x).
+  /// - If no specific driver is found, a [CdcSerialDevice] is created as the
+  ///   default fallback.
   static UsbSerialDevice? createDevice(
     UsbDevice device, {
     int interfaceId = -1,
+    String type = '',
   }) {
+    if (type == UsbSerialDevice.cp210x) {
+      if (CP210xIds.isDeviceSupported(device.vendorId, device.productId)) {
+        if (interfaceId == -1) {
+          interfaceId = 0;
+        }
+        return Cp210XSerialDevice(device, interfaceId);
+      }
+    } else if (type == UsbSerialDevice.ch34x) {
+      if (Ch34xIds.isDeviceSupported(device.vendorId, device.productId)) {
+        if (interfaceId == -1) {
+          interfaceId = 0;
+        }
+        return Ch34xSerialDevice(device, interfaceId);
+      }
+    } else if (type == UsbSerialDevice.cdc) {
+      return CdcSerialDevice(device, interfaceId);
+    }
+
     if (CP210xIds.isDeviceSupported(device.vendorId, device.productId)) {
       if (interfaceId == -1) {
         interfaceId = 0;
       }
       return Cp210XSerialDevice(device, interfaceId);
+    } else if (Ch34xIds.isDeviceSupported(device.vendorId, device.productId)) {
+      if (interfaceId == -1) {
+        interfaceId = 0;
+      }
+      return Ch34xSerialDevice(device, interfaceId);
     } else {
       return CdcSerialDevice(device, interfaceId);
     }

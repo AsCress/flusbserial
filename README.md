@@ -8,7 +8,7 @@ It is inspired and based on code from [UsbSerial](https://github.com/felHR85/Usb
 ### Supported / Planned Devices
 | Device Family | CP210x | CDC ACM | CH34X | FTDI | PL2303 | BLED112 |
 | ------------- | --------- | --------- | --------- | --------- | --------- | --------- |
-| **Status**    | ✅ | ✅ | ⏳ | ⏳ | ⏳ | ⏳ |
+| **Status**    | ✅ | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
 
 >Note: This library is in development. [File any potential issues you see.](https://github.com/AsCress/flusbserial/issues)
 
@@ -41,6 +41,7 @@ This plugin requires an appropriate **WinUSB (_libusb_)** driver to access your 
 dependencies:
     flusbserial: <latest_version>
 ```
+>Note: Based upon the other dependencies included in your project, you may have to add a _dependency override_ for the `ffi` package.
 
 2.  Import the package
 ```dart
@@ -68,6 +69,9 @@ UsbSerialDevice? mDevice = UsbSerialDevice.createDevice(device);
 
 // Specific interface
 UsbSerialDevice? mDevice = UsbSerialDevice.createDevice(device, interfaceId: 0);
+
+// Specific driver (eg:- CDC ACM)
+UsbSerialDevice? mDevice = UsbSerialDevice.createDevice(device, type: UsbSerialDevice.cdc);
 ```
 
 ### Open a device and set it up
