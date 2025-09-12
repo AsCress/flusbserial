@@ -11,7 +11,7 @@ G_BEGIN_DECLS
 #define FLUTTER_PLUGIN_EXPORT
 #endif
 
-FLUTTER_PLUGIN_EXPORT void flusbserial_plugin_register_with_registrar(
+FLUTTER_PLUGIN_EXPORT void fl_usb_serial_plugin_register_with_registrar(
     FlPluginRegistrar* registrar);
 
 G_END_DECLS

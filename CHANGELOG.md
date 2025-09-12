@@ -1,3 +1,7 @@
+## 0.2.1
+
+* Fixes libusb bundling on Linux
+
 ## 0.2.0
 
 * Adds support for CH34x-based devices.
