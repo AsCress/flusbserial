@@ -48,6 +48,7 @@ class _MyAppState extends State<MyApp> {
                       break;
                     }
                   }
+                  UsbSerialDevice.setAutoDetachKernelDriver(true);
                   await mDevice.open();
                   await mDevice.setBaudRate(1000000);
                   await mDevice.setDataBits(UsbSerialInterface.dataBits8);

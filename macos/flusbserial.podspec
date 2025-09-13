@@ -23,6 +23,7 @@ A new Flutter plugin project.
   # s.resource_bundles = {'flusbserial_privacy' => ['Resources/PrivacyInfo.xcprivacy']}
 
   s.dependency 'FlutterMacOS'
+  s.vendored_libraries = 'libusb-1.0.23.dylib'
 
   s.platform = :osx, '10.11'
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES' }

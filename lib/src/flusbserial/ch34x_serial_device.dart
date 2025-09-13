@@ -1,4 +1,5 @@
 import 'dart:ffi';
+import 'dart:io';
 
 import 'package:ffi/ffi.dart' as ffi;
 import 'package:flusbserial/flusbserial.dart';
@@ -111,6 +112,10 @@ class Ch34xSerialDevice extends UsbSerialDevice {
     }
 
     deviceHandle = handle;
+
+    if (UsbSerialDevice.autoDetachKernelDriverEnabled && Platform.isLinux) {
+      _libusb.libusb_set_auto_detach_kernel_driver(deviceHandle, 1);
+    }
 
     configuration = await getConfiguration(0);
 

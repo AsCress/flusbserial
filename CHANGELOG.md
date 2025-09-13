@@ -1,3 +1,8 @@
+## 0.2.2
+
+* Adds `setAutoDetachKernelDriver` for Linux.
+* Fixes libusb bundling with macOS Pod.
+
 ## 0.2.1
 
 * Fixes libusb bundling on Linux

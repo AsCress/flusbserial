@@ -25,6 +25,8 @@ abstract class UsbSerialDevice implements UsbSerialInterface {
   static const String cp210x = 'CP210x';
   static const String ch34x = 'CH34x';
 
+  static bool autoDetachKernelDriverEnabled = false;
+
   static final int usbTimeout = 0;
   static final Libusb _libusb = libusb;
 
@@ -273,6 +275,12 @@ abstract class UsbSerialDevice implements UsbSerialInterface {
       ffi.calloc.free(ptrData);
       ffi.calloc.free(ptrActualLength);
     }
+  }
+
+  /// Sets whether the kernel driver should be automatically detached
+  /// when the device is opened, on Linux.
+  static void setAutoDetachKernelDriver(bool enabled) {
+    autoDetachKernelDriverEnabled = enabled;
   }
 
   static void exit() {

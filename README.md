@@ -103,6 +103,11 @@ await mDevice.setRts(true);
 await mDevice.setRts(false);
 ```
 
+### Set Auto Detach Kernel Driver (only for Linux)
+```dart
+UsbSerialDevice.setAutoDetachKernelDriver(true);
+```
+
 ### Close the device
 ```dart
 await mDevice.close();
