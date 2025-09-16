@@ -27,7 +27,7 @@ This plugin requires an appropriate **WinUSB (_libusb_)** driver to access your 
 
   ```bash
   # Ubuntu/Debian
-  sudo apt-get install libusb-1.0-0-dev
+  sudo apt-get install libusb-1.0-0
 
   # macOS (Homebrew)
   brew install libusb
@@ -83,7 +83,7 @@ await mDevice.setStopBits(UsbSerialInterface.stopBits1);
 await mDevice.setParity(UsbSerialInterface.parityNone);
 ```
 
-### Set flow control if needed (only supported in CP210x devices)
+### Set flow control if needed (only supported in CP210x & CH34x devices)
 ```dart
 await mDevice.setFlowControl(UsbSerialInterface.flowControlRtsCts);
 ```

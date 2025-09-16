@@ -19,6 +19,6 @@ target_link_libraries(${PLUGIN_NAME} PRIVATE flutter flutter_wrapper_plugin)
 
 # List of absolute paths to libraries that should be bundled with the plugin
 set(flusbserial_bundled_libraries
-  "${CMAKE_CURRENT_SOURCE_DIR}/libusb-1.0.23.dll"
+  "${CMAKE_CURRENT_SOURCE_DIR}/libusb-1.0.dll"
   PARENT_SCOPE
 )

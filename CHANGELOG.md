@@ -1,3 +1,7 @@
+## 0.3.0
+
+* Switch to system libusb on Linux and macOS.
+
 ## 0.2.2
 
 * Adds `setAutoDetachKernelDriver` for Linux.
