@@ -238,7 +238,8 @@ abstract class UsbSerialDevice implements UsbSerialInterface {
       if (result != libusb_error.LIBUSB_SUCCESS) {
         throw 'bulkTransferIn error: ${_libusb.describeError(result)}';
       }
-      return Uint8List.fromList(ptrData.asTypedList(bytesToRead));
+      final actualBytesRead = ptrActualLength.value;
+      return Uint8List.fromList(ptrData.asTypedList(actualBytesRead));
     } finally {
       ffi.calloc.free(ptrActualLength);
       ffi.calloc.free(ptrData);

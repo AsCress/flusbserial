@@ -1,3 +1,7 @@
+## 0.3.1
+
+* Fixes USB read operation to return only the actual number of bytes transferred, preventing garbage data on partial reads.
+
 ## 0.3.0
 
 * Switch to system libusb on Linux and macOS.
