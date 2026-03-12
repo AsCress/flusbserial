@@ -1,36 +1,68 @@
 # flusbserial
 [![flusbserial](https://img.shields.io/pub/v/flusbserial?label=flusbserial)](https://pub.dev/packages/flusbserial)
 
-A cross-platform **USB Serial plugin for Flutter desktop apps** (Windows, Linux, macOS).  
-This plugin provides direct access to USB serial devices using [libusb](https://libusb.info), without relying on traditional COM ports.
+A cross-platform USB Serial plugin for Flutter desktop apps (Windows, Linux, macOS).  
+
+`flusbserial` provides direct access to USB serial devices via [libusb](https://libusb.info), bypassing traditional COM ports.
+
 It is inspired and based on code from [UsbSerial](https://github.com/felHR85/UsbSerial) and [quick_usb](https://github.com/woodemi/quick.flutter/tree/master/packages/quick_usb).
 
-### Supported / Planned Devices
-| Device Family | CP210x | CDC ACM | CH34X | FTDI | PL2303 | BLED112 |
-| ------------- | --------- | --------- | --------- | --------- | --------- | --------- |
-| **Status**    | ✅ | ✅ | ✅ | ⏳ | ⏳ | ⏳ |
+>This library is under active development. Please [report any issues](https://github.com/AsCress/flusbserial/issues) you encounter.
 
->Note: This library is in development. [File any potential issues you see.](https://github.com/AsCress/flusbserial/issues)
+---
 
-## Getting Started
+## Supported Devices
 
-### 1. Install libusb driver
-This plugin requires an appropriate **WinUSB (_libusb_)** driver to access your device.
+- CP210x
+- CDC ACM
+- CH34x
 
-- **Windows:**  
-  You can use [Zadig](https://zadig.akeo.ie/) to replace the default driver with **WinUSB** for your device.  
-  (Plug in your USB device → open Zadig → select your device from the list → choose *WinUSB* → click *Install Driver*).
+---
+## Prerequisites
 
-- **Linux / macOS:**  
-  Usually libusb is available by default.  
-  If not, install it with your package manager:  
+This plugin requires **libusb** to access USB devices.
 
-  ```bash
-  # Ubuntu/Debian
-  sudo apt-get install libusb-1.0-0
+### Windows
 
-  # macOS (Homebrew)
-  brew install libusb
+By default, Windows does not allow direct USB access via libusb. You can use [Zadig](https://zadig.akeo.ie/) to replace your device's driver with WinUSB:
+
+1. Plug in your USB device.
+2. Open Zadig and select your device from the list.
+3. Choose **WinUSB** and click **Install Driver**.
+
+>Note: This will replace the existing driver for the selected device. Make sure you select the correct device from the list.
+
+### Linux
+
+libusb is usually available by default. If not:
+```bash
+# Ubuntu / Debian
+sudo apt-get install libusb-1.0-0
+
+# Fedora / RHEL
+sudo dnf install libusb1
+```
+
+Apps built with this plugin require udev rules to access USB devices without root.
+You can create `/etc/udev/rules.d/99-<your-app>.rules` with your device's vendor and product IDs:
+```
+SUBSYSTEM=="usb|tty", ATTRS{idVendor}=="xxxx", ATTRS{idProduct}=="xxxx", MODE="666"
+```
+
+Then reload the rules:
+```bash
+sudo udevadm control --reload-rules && sudo udevadm trigger
+```
+
+### macOS
+
+libusb is usually available by default. If not:
+```bash
+brew install libusb
+```
+
+---
+
 ## Installing
 
 1.  Add dependency to `pubspec.yaml`
@@ -47,6 +79,8 @@ dependencies:
 ```dart
 import 'package:flusbserial/flusbserial.dart';
 ```
+---
+
 ## Usage
 Here are some examples to show the usage:
 
@@ -112,6 +146,7 @@ UsbSerialDevice.setAutoDetachKernelDriver(true);
 ```dart
 await mDevice.close();
 ```
+---
 
 ## License
 ```
