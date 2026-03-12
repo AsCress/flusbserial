@@ -1,3 +1,7 @@
+## 0.3.2
+
+* Implements missing functions in the CH34x driver.
+
 ## 0.3.1
 
 * Fixes USB read operation to return only the actual number of bytes transferred, preventing garbage data on partial reads.

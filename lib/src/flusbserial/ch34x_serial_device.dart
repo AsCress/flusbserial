@@ -76,6 +76,10 @@ class Ch34xSerialDevice extends UsbSerialDevice {
   static const int parityMark = 0xeb;
   static const int paritySpace = 0xfb;
 
+  static const int lineControlDataMask = 0x03;
+  static const int lineControlStopBit2 = 0x04;
+  static const int lineControlParityMask = 0x38;
+
   // Flow control values
   static const int flowControlNone = 0x0000;
   static const int flowControlRtsCts = 0x0101;
@@ -87,6 +91,7 @@ class Ch34xSerialDevice extends UsbSerialDevice {
   bool rts = false;
   bool ctsState = false;
   bool dsrState = false;
+  int lineControl = parityNone;
 
   Ch34xSerialDevice(super.device, super.interfaceId);
 
@@ -174,7 +179,7 @@ class Ch34xSerialDevice extends UsbSerialDevice {
       debugPrint('Failed to init #7');
       return -1;
     }
-    if (await setControlCommandOut(0x9a, 0x2518, 0x00c3, null) < 0) {
+    if (await setControlCommandOut(0x9a, 0x2518, lineControl, null) < 0) {
       debugPrint('Failed to init #8');
       return -1;
     }
@@ -285,6 +290,12 @@ class Ch34xSerialDevice extends UsbSerialDevice {
     if (result < 0) {
       throw 'controlTransfer error: ${_libusb.describeError(result)}';
     }
+
+    if (data != null && ptrData != nullptr) {
+      final native = ptrData.asTypedList(dataLength);
+      data.setAll(0, native);
+    }
+
     if (ptrData != nullptr) {
       ffi.calloc.free(ptrData);
     }
@@ -353,7 +364,28 @@ class Ch34xSerialDevice extends UsbSerialDevice {
   Future<void> setBreak(bool state) async {}
 
   @override
-  Future<void> setDataBits(int dataBits) async {}
+  Future<void> setDataBits(int dataBits) async {
+    int dataBitsValue;
+    switch (dataBits) {
+      case 5:
+        dataBitsValue = 0x00;
+        break;
+      case 6:
+        dataBitsValue = 0x01;
+        break;
+      case 7:
+        dataBitsValue = 0x02;
+        break;
+      case 8:
+        dataBitsValue = 0x03;
+        break;
+      default:
+        return;
+    }
+
+    lineControl = (lineControl & ~lineControlDataMask) | dataBitsValue;
+    await setCh340xLineControl(lineControl);
+  }
 
   @override
   Future<void> setDtr(bool state) async {
@@ -432,29 +464,33 @@ class Ch34xSerialDevice extends UsbSerialDevice {
 
   @override
   Future<void> setParity(int parity) async {
+    int parityBits;
     switch (parity) {
       case 0:
-        await setCh340xParity(parityNone);
+        parityBits = parityNone & lineControlParityMask;
         break;
       case 1:
-        await setCh340xParity(parityOdd);
+        parityBits = parityOdd & lineControlParityMask;
         break;
       case 2:
-        await setCh340xParity(parityEven);
+        parityBits = parityEven & lineControlParityMask;
         break;
       case 3:
-        await setCh340xParity(parityMark);
+        parityBits = parityMark & lineControlParityMask;
         break;
       case 4:
-        await setCh340xParity(paritySpace);
+        parityBits = paritySpace & lineControlParityMask;
         break;
       default:
-        break;
+        return;
     }
+
+    lineControl = (lineControl & ~lineControlParityMask) | parityBits;
+    await setCh340xLineControl(lineControl);
   }
 
-  Future<int> setCh340xParity(int indexParity) async {
-    if (await setControlCommandOut(reqWriteReg, 0x2518, indexParity, null) <
+  Future<int> setCh340xLineControl(int lineControl) async {
+    if (await setControlCommandOut(reqWriteReg, 0x2518, lineControl, null) <
         0) {
       return -1;
     }
@@ -474,7 +510,20 @@ class Ch34xSerialDevice extends UsbSerialDevice {
   }
 
   @override
-  Future<void> setStopBits(int stopBits) async {}
+  Future<void> setStopBits(int stopBits) async {
+    switch (stopBits) {
+      case 1:
+        lineControl &= ~lineControlStopBit2;
+        break;
+      case 3:
+      case 2:
+        lineControl |= lineControlStopBit2;
+        break;
+      default:
+        return;
+    }
+    await setCh340xLineControl(lineControl);
+  }
 
   Pointer<Uint8> toPtr(Uint8List data) {
     final ptr = ffi.calloc<Uint8>(data.length);
