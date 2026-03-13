@@ -1,3 +1,7 @@
+## 0.3.3
+
+* Migrates to spm for macOS.
+
 ## 0.3.2
 
 * Implements missing functions in the CH34x driver.
