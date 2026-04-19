@@ -1,4 +1,4 @@
-import 'package:libusb/libusb64.dart';
+import 'package:dart_libusb/dart_libusb.dart';
 
 class UsbEndpoint {
   static const int maskNumber = 0x0F;

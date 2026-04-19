@@ -1,3 +1,7 @@
+## 0.4.0
+
+* Switch to [`dart_libusb`](https://pub.dev/packages/dart_libusb) for ffi bindings.
+
 ## 0.3.3
 
 * Migrates to spm for macOS.

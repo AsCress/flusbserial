@@ -10,7 +10,7 @@ import 'package:flusbserial/src/flusbserial/usb_serial_device.dart';
 import 'package:flusbserial/src/flusbserial/usb_serial_interface.dart';
 import 'package:flusbserial/src/utils/utils.dart';
 import 'package:flutter/widgets.dart';
-import 'package:libusb/libusb64.dart';
+import 'package:dart_libusb/dart_libusb.dart';
 
 class Cp210XSerialDevice extends UsbSerialDevice {
   final Libusb _libusb = libusb;
@@ -99,7 +99,7 @@ class Cp210XSerialDevice extends UsbSerialDevice {
           deviceHandle,
           configuration!.interfaces[usbInterfaceId].id,
         ) !=
-        libusb_error.LIBUSB_SUCCESS) {
+        libusb_error.LIBUSB_SUCCESS.value) {
       return false;
     }
 
@@ -110,7 +110,7 @@ class Cp210XSerialDevice extends UsbSerialDevice {
     for (int i = 0; i < numberOfEndpoints; i++) {
       UsbEndpoint endpoint = usbInterface.endpoints[i];
       if (endpoint.transferType ==
-              libusb_transfer_type.LIBUSB_TRANSFER_TYPE_BULK &&
+              libusb_transfer_type.LIBUSB_TRANSFER_TYPE_BULK.value &&
           endpoint.direction == UsbEndpoint.directionIn) {
         inEndpoint = endpoint;
       } else {
@@ -135,7 +135,7 @@ class Cp210XSerialDevice extends UsbSerialDevice {
   Future<int> setControlCommand(int request, int value, Uint8List? data) async {
     assert(deviceHandle != nullptr, 'Device not open');
 
-    Pointer<Uint8> ptrData = nullptr;
+    Pointer<UnsignedChar> ptrData = nullptr;
     int dataLength = 0;
 
     if (data != null && data.isNotEmpty) {
@@ -361,7 +361,7 @@ class Cp210XSerialDevice extends UsbSerialDevice {
   }
 
   Future<int> getCTL() async {
-    final Pointer<Uint8> ptrData = ffi.calloc<Uint8>(2);
+    final Pointer<UnsignedChar> ptrData = ffi.calloc<UnsignedChar>(2);
     int result = _libusb.libusb_control_transfer(
       deviceHandle,
       reqTypeDeviceToHost,
@@ -373,13 +373,13 @@ class Cp210XSerialDevice extends UsbSerialDevice {
       UsbSerialDevice.usbTimeout,
     );
     debugPrint("Control Transfer Response: $result");
-    Uint8List data = ptrData.asTypedList(2);
+    Uint8List data = ptrData.cast<Uint8>().asTypedList(2);
     return (data[1] << 8) | (data[0] & 0xFF);
   }
 
-  Pointer<Uint8> toPtr(Uint8List data) {
-    final ptr = ffi.calloc<Uint8>(data.length);
-    final nativeList = ptr.asTypedList(data.length);
+  Pointer<UnsignedChar> toPtr(Uint8List data) {
+    final ptr = ffi.calloc<UnsignedChar>(data.length);
+    final nativeList = ptr.cast<Uint8>().asTypedList(data.length);
     nativeList.setAll(0, data);
     return ptr;
   }

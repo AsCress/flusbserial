@@ -8,7 +8,7 @@ import 'package:flusbserial/src/models/usb_endpoint.dart';
 import 'package:flusbserial/src/models/usb_interface.dart';
 import 'package:flusbserial/src/utils/utils.dart';
 import 'package:flutter/foundation.dart';
-import 'package:libusb/libusb64.dart';
+import 'package:dart_libusb/dart_libusb.dart';
 
 class Ch34xSerialDevice extends UsbSerialDevice {
   final Libusb _libusb = libusb;
@@ -17,9 +17,7 @@ class Ch34xSerialDevice extends UsbSerialDevice {
 
   static const int defaultBaudRate = 9600;
 
-  static const int reqTypeHostFromDevice =
-      libusb_request_type.LIBUSB_REQUEST_TYPE_VENDOR |
-      libusb_endpoint_direction.LIBUSB_ENDPOINT_IN;
+  static const int reqTypeHostFromDevice = 0x40 | 0x80;
   static const int reqTypeHostToDevice = 0x40;
 
   static const int reqWriteReg = 0x9A;
@@ -128,7 +126,7 @@ class Ch34xSerialDevice extends UsbSerialDevice {
           deviceHandle,
           configuration!.interfaces[usbInterfaceId].id,
         ) !=
-        libusb_error.LIBUSB_SUCCESS) {
+        libusb_error.LIBUSB_SUCCESS.value) {
       return false;
     }
 
@@ -139,11 +137,11 @@ class Ch34xSerialDevice extends UsbSerialDevice {
     for (int i = 0; i < numberOfEndpoints; i++) {
       UsbEndpoint endpoint = usbInterface.endpoints[i];
       if (endpoint.transferType ==
-              libusb_transfer_type.LIBUSB_TRANSFER_TYPE_BULK &&
+              libusb_transfer_type.LIBUSB_TRANSFER_TYPE_BULK.value &&
           endpoint.direction == UsbEndpoint.directionIn) {
         inEndpoint = endpoint;
       } else if (endpoint.transferType ==
-              libusb_transfer_type.LIBUSB_TRANSFER_TYPE_BULK &&
+              libusb_transfer_type.LIBUSB_TRANSFER_TYPE_BULK.value &&
           endpoint.direction == UsbEndpoint.directionOut) {
         outEndpoint = endpoint;
       }
@@ -233,7 +231,7 @@ class Ch34xSerialDevice extends UsbSerialDevice {
   ) async {
     assert(deviceHandle != nullptr, 'Device not open');
 
-    Pointer<Uint8> ptrData = nullptr;
+    Pointer<UnsignedChar> ptrData = nullptr;
     int dataLength = 0;
 
     if (data != null && data.isNotEmpty) {
@@ -269,7 +267,7 @@ class Ch34xSerialDevice extends UsbSerialDevice {
   ) async {
     assert(deviceHandle != nullptr, 'Device not open');
 
-    Pointer<Uint8> ptrData = nullptr;
+    Pointer<UnsignedChar> ptrData = nullptr;
     int dataLength = 0;
 
     if (data != null && data.isNotEmpty) {
@@ -292,7 +290,7 @@ class Ch34xSerialDevice extends UsbSerialDevice {
     }
 
     if (data != null && ptrData != nullptr) {
-      final native = ptrData.asTypedList(dataLength);
+      final native = ptrData.cast<Uint8>().asTypedList(dataLength);
       data.setAll(0, native);
     }
 
@@ -525,9 +523,9 @@ class Ch34xSerialDevice extends UsbSerialDevice {
     await setCh340xLineControl(lineControl);
   }
 
-  Pointer<Uint8> toPtr(Uint8List data) {
-    final ptr = ffi.calloc<Uint8>(data.length);
-    final nativeList = ptr.asTypedList(data.length);
+  Pointer<UnsignedChar> toPtr(Uint8List data) {
+    final ptr = ffi.calloc<UnsignedChar>(data.length);
+    final nativeList = ptr.cast<Uint8>().asTypedList(data.length);
     nativeList.setAll(0, data);
     return ptr;
   }

@@ -2,7 +2,7 @@ import 'dart:ffi';
 
 import 'package:flusbserial/flusbserial_platform_interface.dart';
 import 'package:flusbserial/src/utils/utils.dart';
-import 'package:libusb/libusb64.dart';
+import 'package:dart_libusb/dart_libusb.dart';
 
 /// Linux implementation of the [FlUsbSerialPlatform].
 ///

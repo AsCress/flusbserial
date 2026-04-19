@@ -1,5 +1,6 @@
 # flusbserial
 [![flusbserial](https://img.shields.io/pub/v/flusbserial?label=flusbserial)](https://pub.dev/packages/flusbserial)
+[![ascress.com](https://img.shields.io/pub/publisher/flusbserial.svg)](https://pub.dev/packages/flusbserial/publisher)
 
 A cross-platform USB Serial plugin for Flutter desktop apps (Windows, Linux, macOS).  
 
@@ -9,15 +10,12 @@ It is inspired and based on code from [UsbSerial](https://github.com/felHR85/Usb
 
 >This library is under active development. Please [report any issues](https://github.com/AsCress/flusbserial/issues) you encounter.
 
----
-
 ## Supported Devices
 
 - CP210x
 - CDC ACM
 - CH34x
 
----
 ## Prerequisites
 
 This plugin requires **libusb** to access USB devices.
@@ -61,8 +59,6 @@ libusb is usually available by default. If not:
 brew install libusb
 ```
 
----
-
 ## Installing
 
 1.  Add dependency to `pubspec.yaml`
@@ -73,13 +69,11 @@ brew install libusb
 dependencies:
     flusbserial: <latest_version>
 ```
->Note: Based upon the other dependencies included in your project, you may have to add a _dependency override_ for the `ffi` package.
 
 2.  Import the package
 ```dart
 import 'package:flusbserial/flusbserial.dart';
 ```
----
 
 ## Usage
 Here are some examples to show the usage:
@@ -146,7 +140,6 @@ UsbSerialDevice.setAutoDetachKernelDriver(true);
 ```dart
 await mDevice.close();
 ```
----
 
 ## License
 ```

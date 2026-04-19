@@ -8,7 +8,7 @@ import 'package:flusbserial/src/models/usb_endpoint.dart';
 import 'package:flusbserial/src/models/usb_interface.dart';
 import 'package:flusbserial/src/utils/utils.dart';
 import 'package:flutter/foundation.dart';
-import 'package:libusb/libusb64.dart';
+import 'package:dart_libusb/dart_libusb.dart';
 
 class CdcSerialDevice extends UsbSerialDevice {
   final Libusb _libusb = libusb;
@@ -80,7 +80,7 @@ class CdcSerialDevice extends UsbSerialDevice {
 
     if (usbInterfaceId == -1) {
       for (var iface in configuration!.interfaces) {
-        if (iface.interfaceClass == libusb_class_code.LIBUSB_CLASS_DATA) {
+        if (iface.interfaceClass == libusb_class_code.LIBUSB_CLASS_DATA.value) {
           usbInterfaceId = iface.id;
           break;
         }
@@ -88,7 +88,7 @@ class CdcSerialDevice extends UsbSerialDevice {
     }
 
     for (var iface in configuration!.interfaces) {
-      if (iface.interfaceClass == libusb_class_code.LIBUSB_CLASS_COMM) {
+      if (iface.interfaceClass == libusb_class_code.LIBUSB_CLASS_COMM.value) {
         cdcControl = iface.id;
         break;
       }
@@ -98,7 +98,7 @@ class CdcSerialDevice extends UsbSerialDevice {
           deviceHandle,
           configuration!.interfaces[usbInterfaceId].id,
         ) !=
-        libusb_error.LIBUSB_SUCCESS) {
+        libusb_error.LIBUSB_SUCCESS.value) {
       return false;
     }
 
@@ -109,11 +109,11 @@ class CdcSerialDevice extends UsbSerialDevice {
     for (int i = 0; i < numberOfEndpoints; i++) {
       UsbEndpoint endpoint = usbInterface.endpoints[i];
       if (endpoint.transferType ==
-              libusb_transfer_type.LIBUSB_TRANSFER_TYPE_BULK &&
+              libusb_transfer_type.LIBUSB_TRANSFER_TYPE_BULK.value &&
           endpoint.direction == UsbEndpoint.directionIn) {
         inEndpoint = endpoint;
       } else if (endpoint.transferType ==
-              libusb_transfer_type.LIBUSB_TRANSFER_TYPE_BULK &&
+              libusb_transfer_type.LIBUSB_TRANSFER_TYPE_BULK.value &&
           endpoint.direction == UsbEndpoint.directionOut) {
         outEndpoint = endpoint;
       }
@@ -152,7 +152,7 @@ class CdcSerialDevice extends UsbSerialDevice {
   Future<int> setControlCommand(int request, int value, Uint8List? data) async {
     assert(deviceHandle != nullptr, 'Device not open');
 
-    Pointer<Uint8> ptrData = nullptr;
+    Pointer<UnsignedChar> ptrData = nullptr;
     int dataLength = 0;
 
     if (data != null && data.isNotEmpty) {
@@ -269,7 +269,7 @@ class CdcSerialDevice extends UsbSerialDevice {
   }
 
   Future<Uint8List> getCdcLineCoding() async {
-    final Pointer<Uint8> ptrData = ffi.calloc<Uint8>(7);
+    final Pointer<UnsignedChar> ptrData = ffi.calloc<UnsignedChar>(7);
     int result = _libusb.libusb_control_transfer(
       deviceHandle,
       reqTypeDeviceToHost,
@@ -281,13 +281,13 @@ class CdcSerialDevice extends UsbSerialDevice {
       UsbSerialDevice.usbTimeout,
     );
     debugPrint("Control Transfer Response: $result");
-    Uint8List data = ptrData.asTypedList(7);
+    Uint8List data = ptrData.cast<Uint8>().asTypedList(7);
     return data;
   }
 
-  Pointer<Uint8> toPtr(Uint8List data) {
-    final ptr = ffi.calloc<Uint8>(data.length);
-    final nativeList = ptr.asTypedList(data.length);
+  Pointer<UnsignedChar> toPtr(Uint8List data) {
+    final ptr = ffi.calloc<UnsignedChar>(data.length);
+    final nativeList = ptr.cast<Uint8>().asTypedList(data.length);
     nativeList.setAll(0, data);
     return ptr;
   }
