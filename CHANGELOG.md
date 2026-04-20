@@ -1,3 +1,7 @@
+## 0.5.0
+
+* Enables support for macOS through CocoaPods.
+
 ## 0.4.0
 
 * Switch to [`dart_libusb`](https://pub.dev/packages/dart_libusb) for ffi bindings.

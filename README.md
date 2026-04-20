@@ -58,6 +58,27 @@ libusb is usually available by default. If not:
 ```bash
 brew install libusb
 ```
+Your app needs permission to access USB devices. Add the following key to both `macos/Runner/DebugProfile.entitlements` and `macos/Runner/Release.entitlements`:
+
+```xml
+<key>com.apple.security.device.usb</key>
+<true/>
+```
+
+This plugin does not currently support Flutter's Swift Package Manager integration.
+If you have SPM enabled, you must disable it using one of the following methods:
+
+**Option A — Per project**, add to your app's `pubspec.yaml`:
+```yaml
+flutter:
+  config:
+    enable-swift-package-manager: false
+```
+
+**Option B — Globally**, run:
+```bash
+flutter config --no-enable-swift-package-manager
+```
 
 ## Installing
 

@@ -37,7 +37,7 @@ class FlUsbSerialWindows extends FlUsbSerialPlatform {
 /// It provides the bindings for libusb on macOS.
 class FlUsbSerialMac extends FlUsbSerialPlatform {
   FlUsbSerialMac() {
-    libusb = Libusb(DynamicLibrary.open('libusb-1.0.dylib'));
+    libusb = Libusb(DynamicLibrary.process());
   }
   static void registerWith() {
     FlUsbSerialPlatform.instance = FlUsbSerialMac();

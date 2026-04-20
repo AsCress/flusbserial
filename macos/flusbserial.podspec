@@ -4,14 +4,14 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'flusbserial'
-  s.version          = '0.3.3'
+  s.version          = '0.5.0'
   s.summary          = 'A cross-platform USB serial plugin for Flutter desktop apps (Windows, Linux, macOS).'
   s.description      = <<-DESC
 A cross-platform USB serial plugin for Flutter desktop apps (Windows, Linux, macOS).
                        DESC
   s.homepage         = 'https://github.com/AsCress/flusbserial'
   s.license          = { :file => '../LICENSE' }
-  s.author           = { 'Anashuman Singh' => 'ascress7@gmail.com' }
+  s.author           = { 'Anashuman Singh' => 'anashumansingh@ascress.com' }
 
   s.source           = { :path => '.' }
   s.source_files = 'flusbserial/Sources/flusbserial/**/*.swift'
@@ -25,6 +25,15 @@ A cross-platform USB serial plugin for Flutter desktop apps (Windows, Linux, mac
   s.dependency 'FlutterMacOS'
 
   s.platform = :osx, '10.15'
-  s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES' }
   s.swift_version = '5.0'
+
+  libusb_prefix = `brew --prefix libusb 2>/dev/null`.strip
+  libusb_prefix = '/usr/local' if libusb_prefix.empty?
+
+  s.pod_target_xcconfig = {
+    'DEFINES_MODULE'      => 'YES',
+    'LIBRARY_SEARCH_PATHS' => "#{libusb_prefix}/lib",
+    'HEADER_SEARCH_PATHS'  => "#{libusb_prefix}/include",
+    'OTHER_LDFLAGS'        => '-lusb-1.0'
+  }
 end
