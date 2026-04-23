@@ -1,0 +1,16 @@
+version: 2
+
+updates:
+  - package-ecosystem: "pub"
+    directory: "/"
+    schedule:
+      interval: "daily"
+  - package-ecosystem: "github-actions"
+    directories:
+      - "/.github/actions/common"
+      - "/.github/actions/linux"
+      - "/.github/actions/macos"
+      - "/.github/actions/windows"
+      - "/.github/workflows"
+    schedule:
+      interval: "daily"

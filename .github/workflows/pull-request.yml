@@ -1,0 +1,45 @@
+name: Build
+
+on:
+  pull_request:
+    branches: ["master"]
+
+jobs:
+  common:
+    name: Common Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Common Workflow
+        uses: ./.github/actions/common
+  
+  windows:
+    name: Windows Flutter Build
+    needs: common
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Windows Workflow
+        uses: ./.github/actions/windows
+
+  linux:
+    name: Linux Flutter Build
+    needs: common
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Linux Workflow
+        uses: ./.github/actions/linux
+
+  macos:
+    name: macOS Flutter Build
+    needs: common
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: macOS Workflow
+        uses: ./.github/actions/macos
