@@ -1,0 +1,18 @@
+name: "Windows Workflow"
+description: "Builds the Windows desktop app using Flutter"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        cache: true
+        flutter-version-file: pubspec.yaml
+    
+    - name: Build Windows App
+      shell: pwsh
+      run: |
+        cd ./example
+        flutter config --enable-windows-desktop
+        flutter build windows
