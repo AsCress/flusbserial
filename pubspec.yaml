@@ -10,7 +10,7 @@ topics:
 
 environment:
   sdk: ^3.11.0
-  flutter: '3.41.7'
+  flutter: '>=3.41.0'
 
 platforms:
   linux:
