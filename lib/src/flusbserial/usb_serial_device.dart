@@ -1,4 +1,5 @@
 import 'dart:ffi';
+import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart' as ffi;
 import 'package:flusbserial/src/device_ids/ch34x_ids.dart';
@@ -236,33 +237,47 @@ abstract class UsbSerialDevice implements UsbSerialInterface {
   /// [bytesToRead] specifies how many bytes to read.
   /// [timeout] is in milliseconds.
   ///
-  /// Throws if the transfer fails.
+  /// Returns the data read as a [Uint8List].
   @override
   Future<Uint8List> read(int bytesToRead, int timeout) async {
     assert(deviceHandle != nullptr, 'Device not open');
 
-    var ptrActualLength = ffi.calloc<Int>();
-    var ptrData = ffi.calloc<UnsignedChar>(bytesToRead);
-    try {
-      var result = _libusb.libusb_bulk_transfer(
-        deviceHandle,
-        inEndpoint!.endpointAddress,
-        ptrData,
-        bytesToRead,
-        ptrActualLength,
-        timeout,
-      );
-      if (result != libusb_error.LIBUSB_SUCCESS.value) {
-        throw 'bulkTransferIn error: ${_libusb.describeError(result)}';
+    final result = BytesBuilder();
+    int remaining = bytesToRead;
+
+    while (remaining > 0) {
+      final ptrActualLength = ffi.calloc<Int>();
+      final ptrData = ffi.calloc<UnsignedChar>(remaining);
+      try {
+        final res = _libusb.libusb_bulk_transfer(
+          deviceHandle,
+          inEndpoint!.endpointAddress,
+          ptrData,
+          remaining,
+          ptrActualLength,
+          timeout,
+        );
+
+        if (res != libusb_error.LIBUSB_SUCCESS.value) {
+          break;
+        }
+
+        final actualBytesRead = ptrActualLength.value;
+        if (actualBytesRead == 0) break;
+
+        result.add(
+          Uint8List.fromList(
+            ptrData.cast<Uint8>().asTypedList(actualBytesRead),
+          ),
+        );
+        remaining -= actualBytesRead;
+      } finally {
+        ffi.calloc.free(ptrActualLength);
+        ffi.calloc.free(ptrData);
       }
-      final actualBytesRead = ptrActualLength.value;
-      return Uint8List.fromList(
-        ptrData.cast<Uint8>().asTypedList(actualBytesRead),
-      );
-    } finally {
-      ffi.calloc.free(ptrActualLength);
-      ffi.calloc.free(ptrData);
     }
+
+    return result.toBytes();
   }
 
   /// Writes data to the device using bulk transfer.
